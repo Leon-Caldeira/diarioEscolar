@@ -1,0 +1,56 @@
+version: '3'
+
+services:
+  react-app:
+    build: ./react
+    container_name: react
+    restart: always
+    stdin_open: true
+    depends_on: 
+      - db
+    ports:
+      - "5000:5000"
+    networks:
+      - diario-app
+      
+  node-app:
+    build: ./node
+    container_name: node
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - .:/usr/app
+    depends_on:
+      - db
+    links:
+      - db
+    ports:
+      - "3000:3000"
+    command: npm start
+    networks:
+      - diario-app
+
+  db:
+    image: mongo:latest
+    container_name: db
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "27017:27017"
+    volumes:
+      - dbdata-volume:/data/db
+    environment:
+      MONGO_INITDB_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${DB_DATABASE}
+    networks:
+      - diario-app
+
+volumes:
+  dbdata-volume:
+
+networks:
+  diario-app:
+    driver: bridge
